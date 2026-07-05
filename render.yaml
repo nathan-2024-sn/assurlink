@@ -1,0 +1,13 @@
+services:
+  - type: web_service
+    name: assurlink-server
+    env: docker
+    plan: free
+    branch: main
+    dockerfilePath: openapi/server-stubs/nestjs/Dockerfile
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: '1000'
