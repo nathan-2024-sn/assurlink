@@ -13,15 +13,20 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '18'
-      - name: Install openapi-generator
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+      - name: Install openapi-generator locally
         run: |
-          npm install @openapitools/openapi-generator-cli -g
+          npm install @openapitools/openapi-generator-cli
       - name: Generate TypeScript Axios client
         run: |
-          openapi-generator-cli generate -i openapi/openapi-expanded.yaml -g typescript-axios -o openapi/generated-client --skip-validate-spec || true
+          npx openapi-generator-cli generate -i openapi/openapi-expanded.yaml -g typescript-axios -o openapi/generated-client --skip-validate-spec
       - name: Generate NestJS server stub
         run: |
-          openapi-generator-cli generate -i openapi/openapi-expanded.yaml -g typescript-nestjs -o openapi/server-stubs/nestjs --skip-validate-spec || true
+          npx openapi-generator-cli generate -i openapi/openapi-expanded.yaml -g typescript-nestjs -o openapi/server-stubs/nestjs --skip-validate-spec
       - name: Commit generated
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

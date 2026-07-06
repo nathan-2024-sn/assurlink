@@ -172,4 +172,5 @@ paths:
           description: invalid credentials
           content:
             application/problem+json:
-              schema: $ref: '#/components/schemas/Problem'
+              schema:
+                $ref: '#/components/schemas/Problem'
