@@ -1,0 +1,9 @@
+{
+  "components": [
+    { "name": "Button / Primary", "props": ["label","icon","disabled"] },
+    { "name": "Input / Text", "props": ["label","placeholder","help"] },
+    { "name": "Sidebar / Navigation" },
+    { "name": "KPI / Card" },
+    { "name": "Table / Data" }
+  ]
+}

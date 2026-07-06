@@ -1,0 +1,39 @@
+name: OpenAPI Stub Generator
+on:
+  push:
+    paths:
+      - 'openapi/**'
+jobs:
+  generate-stubs:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+      - name: Install openapi-generator locally
+        run: |
+          npm install @openapitools/openapi-generator-cli
+      - name: Generate TypeScript Axios client
+        run: |
+          npx openapi-generator-cli generate -i openapi/openapi-expanded.yaml -g typescript-axios -o openapi/generated-client --skip-validate-spec
+      - name: Generate NestJS server stub
+        run: |
+          npx openapi-generator-cli generate -i openapi/openapi-expanded.yaml -g typescript-nestjs -o openapi/server-stubs/nestjs --skip-validate-spec
+      - name: Commit generated
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add openapi/generated-client || true
+          git add openapi/server-stubs/nestjs || true
+          git commit -m "chore: regenerate openapi stubs" || echo "no changes"
+          git push origin HEAD || echo "push failed"

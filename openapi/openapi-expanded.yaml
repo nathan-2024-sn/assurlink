@@ -1,0 +1,176 @@
+openapi: "3.0.3"
+info:
+  title: "AssurLink Sénégal API"
+  version: "1.0.0"
+  description: "Spec API‑First pour AssurLink Sénégal. Sécurité: OAuth2 / JWT, Idempotency, X-Request-ID, pagination cursor."
+servers:
+  - url: https://api.staging.assurlink.sn/api/v1
+    description: Staging
+  - url: https://api.assurlink.sn/api/v1
+    description: Production
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+    oauth2:
+      type: oauth2
+      flows:
+        password:
+          tokenUrl: https://auth.assurlink.sn/oauth/token
+          scopes: {}
+
+  parameters:
+    XRequestId:
+      name: X-Request-ID
+      in: header
+      description: Correlation id (UUID) for tracing
+      required: false
+      schema:
+        type: string
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      description: Idempotency key for non‑idempotent operations (issue policy, payments)
+      required: false
+      schema:
+        type: string
+    CursorLimit:
+      name: limit
+      in: query
+      schema:
+        type: integer
+        default: 50
+    CursorAfter:
+      name: after
+      in: query
+      schema:
+        type: string
+        description: Cursor token (opaque)
+
+  schemas:
+    Problem:
+      type: object
+      properties:
+        type:
+          type: string
+        title:
+          type: string
+        status:
+          type: integer
+        detail:
+          type: string
+        instance:
+          type: string
+    TokenResponse:
+      type: object
+      properties:
+        access_token: { type: string }
+        refresh_token: { type: string }
+        token_type: { type: string, example: "Bearer" }
+        expires_in: { type: integer, example: 3600 }
+    Organization:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        name: { type: string }
+        org_type: { type: string, enum: [insurer, broker, reinsurer, mutual] }
+        registration_number: { type: string }
+        created_at: { type: string, format: date-time }
+    User:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        organization_id: { type: string, format: uuid }
+        email: { type: string, format: email }
+        given_name: { type: string }
+        family_name: { type: string }
+        roles: { type: array, items: { type: string } }
+        is_active: { type: boolean }
+    Product:
+      type: object
+      properties:
+        id: { type: string }
+        code: { type: string }
+        name: { type: string }
+        description: { type: string }
+        version: { type: integer }
+        schema: { type: object }
+    Quote:
+      type: object
+      properties:
+        id: { type: string }
+        organization_id: { type: string }
+        product_id: { type: string }
+        customer_id: { type: string }
+        premium_amount: { type: number }
+        currency: { type: string }
+        status: { type: string }
+        valid_until: { type: string, format: date-time }
+    Policy:
+      type: object
+      properties:
+        id: { type: string }
+        policy_number: { type: string }
+        product_id: { type: string }
+        customer_id: { type: string }
+        premium: { type: number }
+        start_date: { type: string, format: date }
+        end_date: { type: string, format: date }
+        status: { type: string }
+    Claim:
+      type: object
+      properties:
+        id: { type: string }
+        claim_number: { type: string }
+        policy_id: { type: string }
+        incident_date: { type: string, format: date-time }
+        status: { type: string }
+        total_reserve: { type: number }
+        total_paid: { type: number }
+    Document:
+      type: object
+      properties:
+        id: { type: string }
+        storage_key: { type: string }
+        filename: { type: string }
+        mime: { type: string }
+        size: { type: integer }
+
+security:
+  - bearerAuth: []
+
+paths:
+  /auth/login:
+    post:
+      tags: [auth]
+      summary: Authenticate user (returns token or MFA requirement)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username: { type: string }
+                password: { type: string }
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: '#/components/schemas/TokenResponse'
+                  - type: object
+                    properties:
+                      mfa_required: { type: boolean }
+                      mfa_token: { type: string }
+        "401":
+          description: invalid credentials
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
