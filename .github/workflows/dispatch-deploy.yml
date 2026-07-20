@@ -24,6 +24,25 @@ jobs:
         with:
           node-version: '20'
 
+      - name: Diagnostics: environment and files
+        run: |
+          echo "PWD=$(pwd)"
+          echo "--- repo root listing ---"
+          ls -la || true
+          echo "--- nestjs dir listing ---"
+          ls -la openapi/server-stubs/nestjs || true
+          echo "--- Node / npm versions ---"
+          node -v || true
+          npm -v || true
+          echo "--- npm config ---"
+          npm config ls -l || true
+          echo "--- package.json (nestjs) ---"
+          if [ -f openapi/server-stubs/nestjs/package.json ]; then cat openapi/server-stubs/nestjs/package.json; else echo 'no package.json found'; fi
+          echo "--- Docker availability ---"
+          docker --version || echo 'docker not available'
+          echo "--- Disk usage ---"
+          df -h || true
+
       - name: Build NestJS server
         working-directory: openapi/server-stubs/nestjs
         run: |
