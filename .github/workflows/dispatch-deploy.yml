@@ -24,47 +24,6 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Diagnostics: environment and files
-        run: |
-          echo "PWD=$(pwd)"
-          echo "--- repo root listing ---"
-          ls -la || true
-          echo "--- nestjs dir listing ---"
-          ls -la openapi/server-stubs/nestjs || true
-          echo "--- Node / npm versions ---"
-          node -v || true
-          npm -v || true
-          echo "--- npm config ---"
-          npm config ls -l || true
-          echo "--- package.json (nestjs) ---"
-          if [ -f openapi/server-stubs/nestjs/package.json ]; then cat openapi/server-stubs/nestjs/package.json; else echo 'no package.json found'; fi
-          echo "--- Docker availability ---"
-          docker --version || echo 'docker not available'
-          echo "--- Disk usage ---"
-          df -h || true
-
-      - name: Verbose diagnostic fail (temporary)
-        run: |
-          echo "--- full env ---"
-          env || true
-          echo "--- ulimit ---"
-          ulimit -a || true
-          echo "--- sysctl ---"
-          sysctl -a || true
-          echo "--- traceroute to github.com (may require sudo) ---"
-          (traceroute github.com || tracepath github.com) || true
-          echo "--- curl github status ---"
-          curl -v https://api.github.com/ 2>&1 || true
-          echo "--- attempt to fetch actions run list ---"
-          gh run list --limit 5 --json number,status,name || true
-          echo "--- listing workspace recursively (limited) ---"
-          find . -maxdepth 3 -type f -print | head -n 200 || true
-          echo "--- show node_modules size if exists ---"
-          du -sh node_modules 2>/dev/null || true
-          echo "--- intentionally failing to force logs ---"
-          echo "FAIL-DIAGNOSTIC-STEP" >&2
-          exit 1
-
       - name: Build NestJS server
         working-directory: openapi/server-stubs/nestjs
         run: |
@@ -89,5 +48,5 @@ jobs:
           TAG=${{ github.event.inputs.tag || 'latest' }}
           docker push ghcr.io/${{ github.repository_owner }}/assurlink-server:${TAG}
 
-      - name: Note
-        run: echo "Build and push complete. Trigger Render deploy by updating service or relying on render.yaml auto-deploy for branch main."
+      - name: Success
+        run: echo "Build and push completed. Service deployed to ghcr.io. Render will auto-deploy from main branch."
