@@ -1,0 +1,32 @@
+name: Test Minimal
+
+on:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Print environment
+        run: |
+          echo "=== GITHUB EVENT ==="
+          echo "Event: ${{ github.event_name }}"
+          echo "Ref: ${{ github.ref }}"
+          echo "SHA: ${{ github.sha }}"
+          echo ""
+          echo "=== RUNNER INFO ==="
+          echo "Runner OS: ${{ runner.os }}"
+          echo "Runner Arch: ${{ runner.arch }}"
+          echo ""
+          echo "=== UNAME ==="
+          uname -a
+          echo ""
+          echo "=== DISK ==="
+          df -h
+          echo ""
+          echo "=== ENV ==="
+          env | sort | head -20
+          echo ""
+          echo "=== SUCCESS ==="
+          echo "Test workflow completed successfully"
+          exit 0
